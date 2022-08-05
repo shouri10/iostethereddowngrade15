@@ -1,5 +1,5 @@
-Tethered Downgrade Guide
-By Mineek
+Tethered Downgrade Guide for iOS 15
+By Mineek, shouri
 
 discord: Mineek#6323
 
@@ -25,14 +25,14 @@ HUGE THANKS TO **galaxy#6181**. Without him, I wouldn't have known all this to w
 - img4tool (https://github.com/tihmstar/img4tool)
 - img4 (https://github.com/xerub/img4lib)
 - ldid (https://github.com/ProcursusTeam/ldid)
-- restored_external64_patcher (https://github.com/iSuns9/restored_external64patcher)
-- asr64_patcher (https://github.com/exploit3dguy/asr64_patcher)
+- asr64_patcher for ios 15 (https://github.com/growtopiajaw/asr64_patcher)
+- libimg4_patcher (https://github.com/iSuns9/libimg4_patcher)
 
 **Make sure to use the forks listed above.**
 
 # Downgrade portion:
 
-1. Grab yourself your ipsw for iOS 14.3
+1. Grab yourself your ipsw for iOS 15.1
 2. Extract it and grab yourself your kernel cache and restore_ramdisk
 3. Extract the restore_ramdisk with: img4 -i restore_ramdisk -o ramdisk.dmg
 4. Mount it: 
@@ -44,7 +44,7 @@ HUGE THANKS TO **galaxy#6181**. Without him, I wouldn't have known all this to w
 5. patch the ASR in the ramdisk: 
 
 
-		asr64_patcher ramdisk/usr/sbin/asr patched_asr
+		asr64_patcher_ios15 ramdisk/usr/sbin/asr patched_asr
 
 
 6. resign it:
@@ -53,64 +53,45 @@ HUGE THANKS TO **galaxy#6181**. Without him, I wouldn't have known all this to w
 		ldid -e ramdisk/usr/sbin/asr > ents.plist
 		ldid -Sents.plist patched_asr
 
-
-7. Grab your restored_external: 
-
-
-		cp ramdisk/usr/local/bin/restored_external .
-
-
-8. Patch it: 
-
-
-		restored_external64_patcher restored_external restored_external_patched
+7. patching libimg4
+		
+		cp ramdisk/usr/lib/libimg4.dylib .
+		libimg4_patcher libimg4.dylib libimg4.patched
+		ldid -S libimg4.patched
+		
+8. Remove the old ones: 
 
 
-9. Extract the ents: 
+		rm ramdisk/usr/sbin/asr && rm ramdisk/usr/lib/libimg4.dylib
 
 
-		ldid -e restored_external > restored_externel_ents.plist
+9. chmod them: 
 
 
-10. Remove the old ones: 
-
-
-		rm ramdisk/usr/sbin/asr && rm ramdisk/usr/local/bin/restored_external
-
-
-11. Resign it: 
-
-
-		ldid -Srestored_externel_ents.plist restored_external_patched
-
-
-12. chmod them: 
-
-
-		chmod -R 755 restored_external_patched
+		chmod -R 755 libimg4.patched
 		chmod -R 755 patched_asr
 
 
-13. Copy them back: 
+10. Copy them back: 
 
 
-		cp -a restored_external_patched ramdisk/usr/local/bin/restored_external
+		cp -a libimg4.patched ramdisk/usr/lib/libimg4.dylib
 		cp -a patched_asr ramdisk/usr/sbin/asr
 
 
-14. Detach from the ramdisk: 
+11. Detach from the ramdisk: 
 
 
 		hdiutil detach ramdisk
 
 
-15. Rebuild the ramdisk (dont sign it tho, futurerestore will):
+12. Rebuild the ramdisk (dont sign it tho, futurerestore will):
 
 
 		pyimg4 im4p create -i ramdisk.dmg -o ramdisk.im4p -f rdsk
 
 
-16. Extract the kernel:
+13. Extract the kernel:
 	
 
 		pyimg4 im4p extract -i kernelcache -o kcache.raw --extra kpp.bin 
@@ -118,19 +99,19 @@ HUGE THANKS TO **galaxy#6181**. Without him, I wouldn't have known all this to w
 
 (leave out --extra kpp.bin if you dont have kpp)
 
-17. Patch it: 
+14. Patch it: 
 
 
 		Kernel64Patcher kcache.raw krnl.patched -f -a
 
 
-18. Rebuild the kernel:
+15. Rebuild the kernel:
 
 
 		pyimg4 im4p create -i krnl.patched -o krnl.im4p --extra kpp.bin -f rkrn --lzss (leave out --extra kpp.bin if you dont have kpp)
 
 
-19. You can now restore with futurerestore via this command (blob can be for ANY version):
+16. You can now restore with futurerestore via this command (blob can be for ANY version):
 
 **(MAKE SURE YOU ARE IN PWNDFU WITH SIGCHECKS REMOVED!)**
 
