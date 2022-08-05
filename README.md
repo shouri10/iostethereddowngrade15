@@ -1,4 +1,4 @@
-Tethered Downgrade Guide for iOS 15
+Tethered Downgrade Guide for iOS 15 (need testers)
 By Mineek, shouri
 
 discord: Mineek#6323
